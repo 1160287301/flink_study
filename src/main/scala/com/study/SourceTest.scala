@@ -10,7 +10,7 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer011
 import scala.util.Random
 
 
-case class SensorReading(id: String, timestamp: Long, temperature: Double)
+//case class SensorReading(id: String, timestamp: Long, temperature: Double)
 
 class SensorSource() extends SourceFunction[SensorReading] {
 
