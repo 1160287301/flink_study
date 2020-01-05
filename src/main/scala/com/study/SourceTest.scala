@@ -55,6 +55,7 @@ object SourceTest {
     stream.print("sensor_stream").setParallelism(1)
 
     env.execute("source test")
+
   }
 
   def fromKafka(): Unit = {
@@ -78,9 +79,9 @@ object SourceTest {
   }
 
   def main(args: Array[String]): Unit = {
-    //    fromCollection()
+        fromCollection()
     //    fromKafka()
-    fromCustom()
+//    fromCustom()
   }
 
 
