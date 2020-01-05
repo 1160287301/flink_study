@@ -2,7 +2,7 @@ package com.study
 
 import org.apache.flink.api.common.state.{ValueState, ValueStateDescriptor}
 import org.apache.flink.streaming.api.TimeCharacteristic
-import org.apache.flink.streaming.api.functions.KeyedProcessFunction
+import org.apache.flink.streaming.api.functions.{KeyedProcessFunction, ProcessFunction}
 import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.api.windowing.time.Time
@@ -26,6 +26,7 @@ object ProcessFunctionAPI {
 
   def timers(): Unit = {
     // TimerServer 和 定时器(Timers)
+    // 需求: 某个传感器连续两次温度上升就报警
 
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
     val stream = env.readTextFile("%s\\src\\main\\resources\\sensor.txt".format(System.getProperty("user.dir")))
@@ -39,18 +40,43 @@ object ProcessFunctionAPI {
         override def extractTimestamp(t: SensorReading): Long = t.timestamp * 1000
       })
 
-    // 需求: 某个传感器连续两次温度上升就报警
     val processedStream = dataStream.keyBy(_.id)
       .process(new TempIncreAlert())
 
     stream.print()
     processedStream.print("process temp")
     env.execute("process test")
+  }
+
+  def side_outputs(): Unit = {
+    // Emitting to Side Outputs(侧输出流)
+    // 需求: 将传感器数据流分流, 如果小于冰点, 输出信息到侧输出流
+
+    env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
+    val stream = env.readTextFile("%s\\src\\main\\resources\\sensor.txt".format(System.getProperty("user.dir")))
+    val dataStream = stream.map(
+      data => {
+        val dataArray = data.split(",")
+        SensorReading(dataArray(0).trim, dataArray(1).trim.toLong, dataArray(2).trim.toDouble)
+      }
+    )
+      .assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor[SensorReading](Time.seconds(1)) {
+        override def extractTimestamp(t: SensorReading): Long = t.timestamp * 1000
+      })
+
+    val processedStream = dataStream
+      .process(new FreezingAlert())
+
+    processedStream.print("process temp")
+    // 获取侧输出流并输出
+    processedStream.getSideOutput(new OutputTag[String]("freezing alert")).print()
+    env.execute("process test")
 
   }
 
   def main(args: Array[String]): Unit = {
     timers()
+    side_outputs()
   }
 
 
@@ -86,5 +112,20 @@ class TempIncreAlert() extends KeyedProcessFunction[String, SensorReading, Strin
     // 输出报警信息
     out.collect(ctx.getCurrentKey + "温度连续上升")
     currentTimer.clear()
+  }
+}
+
+class FreezingAlert() extends ProcessFunction[SensorReading, SensorReading]{
+  lazy val alertOutput: OutputTag[String] = new OutputTag[String]("freezing alert")
+
+  override def processElement(i: SensorReading, context: ProcessFunction[SensorReading, SensorReading]#Context, collector: Collector[SensorReading]): Unit = {
+    if (i.temperature < 0){
+      // 输出到测输出流
+      context.output(alertOutput, "freezing alert for " + i.id)
+    } else {
+      // 输出到主输出流
+      collector.collect(i)
+    }
+
   }
 }
