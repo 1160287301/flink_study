@@ -21,42 +21,47 @@ ProcessWindowFunction
 ProcessAllWindowFunction
  */
 object ProcessFunctionAPI {
-  def main(args: Array[String]): Unit = {
-    val env = StreamExecutionEnvironment.getExecutionEnvironment
-    env.setParallelism(1)
-//    env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
-    val stream = env.readTextFile("/Users/h/PycharmProjects/flink_study/src/main/resources/sensor.txt")
-//    val dataStream = stream.map(
-//      data => {
-//        val dataArray = data.split(",")
-//        SensorReading(dataArray(0).trim, dataArray(1).trim.toLong, dataArray(2).trim.toDouble)
-//      }
-//    )
-//      .assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor[SensorReading](Time.seconds(1)) {
-//      override def extractTimestamp(t: SensorReading): Long = t.timestamp * 1000
-//    })
-//
-//    // 需求: 某个传感器连续两次温度上升就报警
-//    val processedStream = dataStream.keyBy(_.id)
-//      .process(new TempIncreAlert())
+  val env = StreamExecutionEnvironment.getExecutionEnvironment
+  env.setParallelism(1)
 
-    print("11111")
+  def timers(): Unit = {
+    // TimerServer 和 定时器(Timers)
+
+    env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
+    val stream = env.readTextFile("%s\\src\\main\\resources\\sensor.txt".format(System.getProperty("user.dir")))
+    val dataStream = stream.map(
+      data => {
+        val dataArray = data.split(",")
+        SensorReading(dataArray(0).trim, dataArray(1).trim.toLong, dataArray(2).trim.toDouble)
+      }
+    )
+      .assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor[SensorReading](Time.seconds(1)) {
+        override def extractTimestamp(t: SensorReading): Long = t.timestamp * 1000
+      })
+
+    // 需求: 某个传感器连续两次温度上升就报警
+    val processedStream = dataStream.keyBy(_.id)
+      .process(new TempIncreAlert())
+
     stream.print()
-//    dataStream.print()
-//    processedStream.print("process temp")
+    processedStream.print("process temp")
     env.execute("process test")
 
+  }
+
+  def main(args: Array[String]): Unit = {
+    timers()
   }
 
 
 }
 
-class TempIncreAlert() extends KeyedProcessFunction[String, SensorReading, String]{
+class TempIncreAlert() extends KeyedProcessFunction[String, SensorReading, String] {
 
   // 定义一个状态,用来保存上一个数据的温度值
-  lazy val lastTemp: ValueState[Double] = getIterationRuntimeContext.getState(new ValueStateDescriptor[Double]("lastTemp", classOf[Double]))
+  lazy val lastTemp: ValueState[Double] = getRuntimeContext.getState(new ValueStateDescriptor[Double]("lastTemp", classOf[Double]))
   // 定义一个状态,用来保存定时器的时间戳
-  lazy val currentTimer: ValueState[Long] = getIterationRuntimeContext.getState(new ValueStateDescriptor[Long]("currentTimer", classOf[Long]))
+  lazy val currentTimer: ValueState[Long] = getRuntimeContext.getState(new ValueStateDescriptor[Long]("currentTimer", classOf[Long]))
 
   // 流中的每条数据都会调用该方法
   override def processElement(i: SensorReading, context: KeyedProcessFunction[String, SensorReading, String]#Context, collector: Collector[String]): Unit = {
@@ -66,13 +71,13 @@ class TempIncreAlert() extends KeyedProcessFunction[String, SensorReading, Strin
     lastTemp.update(i.temperature)
 
     // 温度上升且没有设置过定时器,就注册定时器
-    if (i.temperature > perTemp && currentTimer.value() == 0){
+    if (i.temperature > perTemp && currentTimer.value() == 0) {
       val timerTs = context.timerService().currentProcessingTime() + 1000L
       context.timerService().registerProcessingTimeTimer(timerTs)
       currentTimer.update(timerTs)
     } else if (perTemp > i.temperature || perTemp == 0.0) {
       // 如果温度下降,或是第一条数据,则删除定时器并清空状态
-      context.timerService().deleteEventTimeTimer( currentTimer.value())
+      context.timerService().deleteEventTimeTimer(currentTimer.value())
       currentTimer.clear()
     }
   }
