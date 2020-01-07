@@ -1,6 +1,7 @@
 package com.study
 
 import org.apache.flink.api.common.state.{ValueState, ValueStateDescriptor}
+import org.apache.flink.runtime.state.memory.MemoryStateBackend
 import org.apache.flink.streaming.api.TimeCharacteristic
 import org.apache.flink.streaming.api.functions.{KeyedProcessFunction, ProcessFunction}
 import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor
@@ -23,6 +24,10 @@ ProcessAllWindowFunction
 object ProcessFunctionAPI {
   val env = StreamExecutionEnvironment.getExecutionEnvironment
   env.setParallelism(1)
+  // 设置状态后端
+//  env.setStateBackend(new MemoryStateBackend())
+  // 设置 checkpoint
+//  env.enableCheckpointing(1000)
 
   def timers(): Unit = {
     // TimerServer 和 定时器(Timers)
