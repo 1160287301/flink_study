@@ -20,6 +20,8 @@ Icon
 .VolumeIcon.icns
 .com.apple.timemachine.donotpresent
 *.iml
+*.eml
+>>>>>>> b74572d4c5c217fa82f5b6ebe7e83d6eca7f3877
 # Directories potentially created on remote AFP share
 .AppleDB
 .AppleDesktop
