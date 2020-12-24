@@ -18,7 +18,7 @@
        -->
         <dependency>
             <groupId>org.apache.flink</groupId>
-            <artifactId>flink-streaming-java_2.12</artifactId>
+            <artifactId>flink-streaming-java_2.11</artifactId>
             <version>1.10.1</version>
         </dependency>
         <dependency>
@@ -30,6 +30,11 @@
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-streaming-scala_2.11</artifactId>
             <version>1.7.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+            <version>2.11.12</version>
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
@@ -67,44 +72,44 @@
             <version>1.7.2</version>
         </dependency>
     </dependencies>
-    <build>
-        <plugins>
-            <!-- 该插件用于将 Scala 代码编译成 class 文件 -->
-            <plugin>
-                <groupId>net.alchim31.maven</groupId>
-                <artifactId>scala-maven-plugin</artifactId>
-                <version>3.4.6</version>
-                <executions>
-                    <execution>
-                        <!-- 声明绑定到 maven 的 compile 阶段 -->
-                        <goals>
-                            <goal>compile</goal>
-                            <goal>testCompile</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>3.0.0</version>
-                <configuration>
-                    <descriptorRefs>
-                        <descriptorRef>jar-withdependencies</descriptorRef>
-                    </descriptorRefs>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>make-assembly</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
+    <!--<build>-->
+    <!--<plugins>-->
+    <!--&lt;!&ndash; 该插件用于将 Scala 代码编译成 class 文件 &ndash;&gt;-->
+    <!--<plugin>-->
+    <!--<groupId>net.alchim31.maven</groupId>-->
+    <!--<artifactId>scala-maven-plugin</artifactId>-->
+    <!--<version>3.4.6</version>-->
+    <!--<executions>-->
+    <!--<execution>-->
+    <!--&lt;!&ndash; 声明绑定到 maven 的 compile 阶段 &ndash;&gt;-->
+    <!--<goals>-->
+    <!--<goal>compile</goal>-->
+    <!--<goal>testCompile</goal>-->
+    <!--</goals>-->
+    <!--</execution>-->
+    <!--</executions>-->
+    <!--</plugin>-->
+    <!--<plugin>-->
+    <!--<groupId>org.apache.maven.plugins</groupId>-->
+    <!--<artifactId>maven-assembly-plugin</artifactId>-->
+    <!--<version>3.0.0</version>-->
+    <!--<configuration>-->
+    <!--<descriptorRefs>-->
+    <!--<descriptorRef>jar-withdependencies</descriptorRef>-->
+    <!--</descriptorRefs>-->
+    <!--</configuration>-->
+    <!--<executions>-->
+    <!--<execution>-->
+    <!--<id>make-assembly</id>-->
+    <!--<phase>package</phase>-->
+    <!--<goals>-->
+    <!--<goal>single</goal>-->
+    <!--</goals>-->
+    <!--</execution>-->
+    <!--</executions>-->
+    <!--</plugin>-->
+    <!--</plugins>-->
+    <!--</build>-->
 
 
 </project>

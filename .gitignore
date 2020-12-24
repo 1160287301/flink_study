@@ -4,7 +4,7 @@
 *.DS_Store
 .AppleDouble
 .LSOverride
-
+.flink_study.iml
 # Icon must end with two \r
 Icon
 
