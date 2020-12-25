@@ -2,6 +2,7 @@ package com.study.wc;
 
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.util.Collector;
@@ -9,10 +10,16 @@ import org.apache.flink.util.Collector;
 public class StreamWordCount {
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment environment = StreamExecutionEnvironment.getExecutionEnvironment();
+        environment.setParallelism(4);
 
         // 从文件中读取数据
-        String inputPath = "C:\\myApp\\PycharmProjects\\flink_study\\src\\main\\resources\\words.txt";
-        DataStream<String> dataSource = environment.readTextFile(inputPath);
+//        String inputPath = "/Users/h/PycharmProjects/flink_study/src/main/resources/words.txt";
+//        DataStream<String> dataSource = environment.readTextFile(inputPath);
+        // 从 socket 文本流读取数据 nc -lk 7777
+        ParameterTool parameterTool = ParameterTool.fromArgs(args);
+        String host = parameterTool.get("host");
+        int port = parameterTool.getInt("port");
+        DataStream<String> dataSource = environment.socketTextStream(host, port);
         DataStream<Tuple2<String, Integer>> sum = dataSource.flatMap(
                 new FlatMapFunction<String, Tuple2<String, Integer>>() {
                     @Override
