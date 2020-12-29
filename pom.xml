@@ -73,6 +73,29 @@
             <version>1.7.2</version>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <includeSystemScope>true</includeSystemScope>
+                    <classifier>exec</classifier>
+                    <mainClass>com.sensorsdata.analytics.sso.SsoMainApp</mainClass>
+                    <layout>JAR</layout>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
     <!--<build>-->
     <!--<plugins>-->
     <!--&lt;!&ndash; 该插件用于将 Scala 代码编译成 class 文件 &ndash;&gt;-->
