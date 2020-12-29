@@ -15,7 +15,7 @@ public class WordCount {
         ExecutionEnvironment environment = ExecutionEnvironment.getExecutionEnvironment();
 
         // 从文件中读取数据
-        String inputPath = "C:\\myApp\\PycharmProjects\\flink_study\\src\\main\\resources\\words.txt";
+        String inputPath = "src/main/resources/words.txt";
         DataSet<String> dataSource = environment.readTextFile(inputPath);
         DataSet<Tuple2<String, Integer>> sum = dataSource.flatMap(
                 new FlatMapFunction<String, Tuple2<String, Integer>>() {
