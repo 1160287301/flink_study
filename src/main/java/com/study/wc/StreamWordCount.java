@@ -9,8 +9,7 @@ import org.apache.flink.util.Collector;
 
 public class StreamWordCount {
     public static void main(String[] args) throws Exception {
-        StreamExecutionEnvironment environment = StreamExecutionEnvironment.getExecutionEnvironment();
-        environment.setParallelism(4);
+        StreamExecutionEnvironment environment = StreamExecutionEnvironment.getExecutionEnvironment();  // 这里的slot共享组是"default"
 
         // 从文件中读取数据
 //        String inputPath = "/Users/h/PycharmProjects/flink_study/src/main/resources/words.txt";
@@ -29,9 +28,9 @@ public class StreamWordCount {
                             collector.collect(new Tuple2(value, 1));
                         }
                     }
-                })
+                }).slotSharingGroup("green") // 设置不同的slot共享组, 不同的共享组必须使用不同的slot, 没有设置的算子默认使用前面一个算子的共享组
                 .keyBy(0)
-                .sum(1);
+                .sum(1).slotSharingGroup("rad");
         sum.print();
         environment.execute();
     }
