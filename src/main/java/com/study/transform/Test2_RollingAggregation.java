@@ -21,7 +21,8 @@ public class Test2_RollingAggregation {
                 })
 //                .keyBy("id")
                 .keyBy(SensorReading::getId)
-                .max("temperature")
+//                .max("temperature")
+                .maxBy("temperature") // 滚动聚合, 在滚动的窗口中输出该窗口温度最大的那条数据
                 .print();
 
 
