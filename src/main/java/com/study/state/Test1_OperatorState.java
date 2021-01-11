@@ -9,6 +9,9 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * 算子状态, 基于算子, 和 key 没啥关系,只要是同一个分区里面访问的都是同一个状态
+ */
 public class Test1_OperatorState {
     public static void main(String[] args) throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
