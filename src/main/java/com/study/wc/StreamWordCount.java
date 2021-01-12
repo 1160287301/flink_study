@@ -15,7 +15,7 @@ public class StreamWordCount {
         // 从文件中读取数据
 //        String inputPath = "src/main/resources/words.txt";
 //        DataStream<String> dataSource = environment.readTextFile(inputPath);
-        // 从 socket 文本流读取数据 nc -lk 7777
+        // 从 socket 文本流读取数据 nc -lk 7777  window(nc -L -p 7777)
         ParameterTool parameterTool = ParameterTool.fromArgs(args);
         String host = parameterTool.get("host");
         int port = parameterTool.getInt("port");
