@@ -2,12 +2,12 @@ package com.study.window;
 
 import com.study.beans.SensorReading;
 import org.apache.commons.collections.IteratorUtils;
-import org.apache.flink.api.common.functions.AggregateFunction;
 import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.windowing.WindowFunction;
 import org.apache.flink.streaming.api.windowing.time.Time;
+import org.apache.flink.streaming.api.windowing.windows.GlobalWindow;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.util.Collector;
 
@@ -39,6 +39,7 @@ public class Test1_TimeWindow {
                 .apply(new WindowFunction<SensorReading, String, Tuple, TimeWindow>() {
                     @Override
                     public void apply(Tuple tuple, TimeWindow timeWindow, Iterable<SensorReading> iterable, Collector<String> collector) throws Exception {
+                        System.out.println(tuple);
                         String id = tuple.getField(0);
                         int size = IteratorUtils.toList(iterable.iterator()).size();
                         collector.collect(id + timeWindow.getEnd() + size);
@@ -48,6 +49,7 @@ public class Test1_TimeWindow {
     }
 
     public static void main(String[] args) throws Exception {
+        new Test1_TimeWindow().apply();
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
 
@@ -63,28 +65,39 @@ public class Test1_TimeWindow {
 //                .timeWindow(Time.seconds(15))  // 有两组构造方法, 传一个参数的事滚动窗口,两个的事滑动窗口
 //                .window(EventTimeSessionWindows.withGap(Time.minutes(1)));  // 创建一个session window
                 .countWindow(10, 2)
-                // 增量聚合函数 只记录累加的状态
-                .aggregate(new AggregateFunction<SensorReading, Integer, Integer>() {
+                .apply(new WindowFunction<SensorReading, Object, Tuple, GlobalWindow>() {
                     @Override
-                    public Integer createAccumulator() {
-                        return 0;
-                    }
-
-                    @Override
-                    public Integer add(SensorReading sensorReading, Integer integer) {
-                        return integer + 1;
-                    }
-
-                    @Override
-                    public Integer getResult(Integer integer) {
-                        return integer;
-                    }
-
-                    @Override
-                    public Integer merge(Integer integer, Integer acc1) {
-                        return integer + acc1;
+                    public void apply(Tuple tuple, GlobalWindow globalWindow, Iterable<SensorReading> iterable, Collector<Object> collector) throws Exception {
+                        System.out.println(tuple);
+                        String id = tuple.getField(0);
+                        int size = IteratorUtils.toList(iterable.iterator()).size();
+                        collector.collect(id + "" + size);
                     }
                 }).print();
+
+
+        // 增量聚合函数 只记录累加的状态
+//                .aggregate(new AggregateFunction<SensorReading, Integer, Integer>() {
+//                    @Override
+//                    public Integer createAccumulator() {
+//                        return 0;
+//                    }
+//
+//                    @Override
+//                    public Integer add(SensorReading sensorReading, Integer integer) {
+//                        return integer + 1;
+//                    }
+//
+//                    @Override
+//                    public Integer getResult(Integer integer) {
+//                        return integer;
+//                    }
+//
+//                    @Override
+//                    public Integer merge(Integer integer, Integer acc1) {
+//                        return integer + acc1;
+//                    }
+//                }).print();
         env.execute();
     }
 }
