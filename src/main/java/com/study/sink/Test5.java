@@ -17,14 +17,12 @@ import org.apache.flink.streaming.api.functions.timestamps.AscendingTimestampExt
 import org.apache.flink.streaming.api.functions.windowing.WindowFunction;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
-import org.apache.flink.streaming.connectors.redis.RedisSink;
-import org.apache.flink.streaming.connectors.redis.common.config.FlinkJedisPoolConfig;
-import org.apache.flink.streaming.connectors.redis.common.mapper.RedisCommand;
-import org.apache.flink.streaming.connectors.redis.common.mapper.RedisCommandDescription;
-import org.apache.flink.streaming.connectors.redis.common.mapper.RedisMapper;
 import org.apache.flink.util.Collector;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Test5 {
     public static void main(String[] args) throws Exception {
@@ -34,7 +32,7 @@ public class Test5 {
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 
         // 2. 读取数据，创建DataStream
-        DataStream<String> inputStream = env.readTextFile("/Users/h/Downloads/4.代码/UserBehaviorAnalysis/HotItemsAnalysis/src/main/resources/UserBehavior.csv");
+        DataStream<String> inputStream = env.readTextFile("/Users/h/PycharmProjects/flink_study/UserBehavior.csv");
 
 //        Properties properties = new Properties();
 //        properties.setProperty("bootstrap.servers", "localhost:9092");
@@ -74,30 +72,30 @@ public class Test5 {
                 .process(new TopNHotItems(5));   // 用自定义处理函数排序取前5
         resultStream.print("resultStream");
         // 定义jedis连接配置
-        FlinkJedisPoolConfig config = new FlinkJedisPoolConfig.Builder()
-                .setHost("localhost")
-                .setPort(6379)
-                .setDatabase(5)
-                .build();
+//        FlinkJedisPoolConfig config = new FlinkJedisPoolConfig.Builder()
+//                .setHost("localhost")
+//                .setPort(6379)
+//                .setDatabase(5)
+//                .build();
 
-        resultStream.addSink(new RedisSink(config, new RedisMapper<String>() {
-            @Override
-            public RedisCommandDescription getCommandDescription() {
-                return new RedisCommandDescription(RedisCommand.SET, "SensorReading");
-            }
-
-            @Override
-            public String getKeyFromData(String map) {
-                Random a = new Random(47);
-                return "123" + a.nextInt();
-            }
-
-            @Override
-            public String getValueFromData(String map) {
-                return map;
-            }
-
-        }));
+//        resultStream.addSink(new RedisSink(config, new RedisMapper<String>() {
+//            @Override
+//            public RedisCommandDescription getCommandDescription() {
+//                return new RedisCommandDescription(RedisCommand.SET, "SensorReading");
+//            }
+//
+//            @Override
+//            public String getKeyFromData(String map) {
+//                Random a = new Random(47);
+//                return "123" + a.nextInt();
+//            }
+//
+//            @Override
+//            public String getValueFromData(String map) {
+//                return map;
+//            }
+//
+//        }));
 
         env.execute("hot items analysis");
     }
@@ -188,4 +186,20 @@ public class Test5 {
 //            Thread.sleep(5000L);
         }
     }
+
+
+    //resultStream:2> 1511658011000-88:1;1511658011000-66:1;1511658011000-99:1;
+    //resultStream:7> 1511658003000-22:1;1511658003000-11:1;
+    //resultStream:6> 1511658005000-44:1;1511658005000-22:1;1511658005000-33:1;1511658005000-11:1;
+    //resultStream:7> 1511658009000-44:1;1511658009000-88:1;1511658009000-55:1;1511658009000-66:1;1511658009000-99:1;
+    //resultStream:5> 1511658007000-44:1;1511658007000-55:1;1511658007000-22:1;1511658007000-33:1;1511658007000-66:1;
+    //resultStream:2> 1511658013000-99:1;
+
+
+    //resultStream> 1511658003000-11:1;1511658003000-22:1;
+    //resultStream> 1511658005000-22:1;1511658005000-11:1;1511658005000-44:1;1511658005000-33:1;
+    //resultStream> 1511658007000-66:1;1511658007000-44:1;1511658007000-33:1;1511658007000-55:1;1511658007000-22:1;
+    //resultStream> 1511658009000-66:1;1511658009000-44:1;1511658009000-99:1;1511658009000-88:1;1511658009000-55:1;
+    //resultStream> 1511658011000-66:1;1511658011000-55:1;1511658011000-99:1;1511658011000-88:1;
+    //resultStream> 1511658013000-99:1;
 }
